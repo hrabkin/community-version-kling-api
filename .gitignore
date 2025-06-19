@@ -1,0 +1,34 @@
+# Ignore prompt files
+prompts/*
+!prompts/.keep
+
+# Ignore video files
+videos/*
+!videos/.keep
+
+videos_original/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log 
