@@ -248,15 +248,17 @@ Generated videos are saved in the `results/` directory with descriptive filename
 - `prompt`: Text description (max 2500 characters)
 - `operation`: "creation" or "extension"
 
-# Prompt
+# KlingAI official documentation
 
-Images:
-https://docs.qingque.cn/d/home/eZQCtOj9fX_6cUjT_0yuk-yrL?identityId=1uX4dFq8Jtr#section=h.avhgs1y0tchp
+[API docs](https://docs.qingque.cn/d/home/eZQDkhg4h2Qg8SEVSUTBdzYeY?identityId=1oEG9JKKMFv)
 
-Video:
-https://docs.qingque.cn/d/home/eZQDvlYrDMyE9lOforCeWA4KP?identityId=2AwUiwWiFnw
+## Prompt Instructions
 
-## Video
+[Images](https://docs.qingque.cn/d/home/eZQCtOj9fX_6cUjT_0yuk-yrL?identityId=1uX4dFq8Jtr#section=h.avhgs1y0tchp)
+
+[Videos](https://docs.qingque.cn/d/home/eZQDvlYrDMyE9lOforCeWA4KP?identityId=2AwUiwWiFnw)
+
+### Prompt instruction for videos extracted
 
 Prompt = Subject (Subject Description) + Subject Movement + Scene (Scene Description) + (Camera Language + Lighting + Atmosphere)
 
@@ -291,9 +293,3 @@ Tips:
 	•	Current models are not sensitive to numbers; e.g., “10 puppies on the beach” may not generate correctly.
 	•	For split-screen scenes, use prompts like “4 camera angles, representing spring, summer, autumn, and winter.”
 	•	Avoid complex physical movements such as bouncing balls or high throws, as they are hard to generate at this stage.
-
-# Kling API usage
-
-## Image generation
-
-https://docs.qingque.cn/d/home/eZQDkhg4h2Qg8SEVSUTBdzYeY?identityId=1oEG9JKKMFv
