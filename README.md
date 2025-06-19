@@ -260,6 +260,7 @@ Generated videos are saved in the `results/` directory with descriptive filename
 
 ### Prompt instruction for videos extracted
 
+```
 Prompt = Subject (Subject Description) + Subject Movement + Scene (Scene Description) + (Camera Language + Lighting + Atmosphere)
 
 Lighting and Atmosphere are optional.
@@ -293,3 +294,4 @@ Tips:
 	•	Current models are not sensitive to numbers; e.g., “10 puppies on the beach” may not generate correctly.
 	•	For split-screen scenes, use prompts like “4 camera angles, representing spring, summer, autumn, and winter.”
 	•	Avoid complex physical movements such as bouncing balls or high throws, as they are hard to generate at this stage.
+```
