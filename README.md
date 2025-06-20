@@ -58,6 +58,21 @@ python generate_video.py prompts.json 0 --no-monitor
 
 > **Note:** `--no-monitor` skips the automatic waiting and downloading. You get the task ID immediately and can check status/download later manually.
 
+**Check creation task and download**
+```bash
+python generate_video.py --check "task_12345"
+```
+
+**Check extension task status only**
+```bash
+python generate_video.py --check "task_67890" --operation extension --no-download
+```
+
+**Download with custom filename**
+```bash
+python generate_video.py --check "764655083266785360" --filename "awesome_video"
+```
+
 #### Video Extension
 
 **Extend video without additional prompt:**

@@ -82,9 +82,31 @@ class KlingAPI:
             "duration": duration
         }
         
-        response = requests.post(url, headers=self._get_headers(), json=payload)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Video creation failed: {e}"
+            
+            # Try to get detailed error from response
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_details = e.response.json()
+                    if 'message' in error_details:
+                        error_msg = f"Video creation failed: {error_details['message']}"
+                    elif 'error' in error_details:
+                        error_msg = f"Video creation failed: {error_details['error']}"
+                    else:
+                        error_msg = f"Video creation failed: {error_details}"
+                except:
+                    # If response is not JSON, use text
+                    error_msg = f"Video creation failed: {e.response.text}"
+                
+                # Add status code and URL for debugging
+                error_msg += f" (Status: {e.response.status_code}, URL: {url})"
+                
+            raise requests.exceptions.RequestException(error_msg) from e
     
     def extend_video(self, video_id, prompt=None):
         """
@@ -110,9 +132,31 @@ class KlingAPI:
         if prompt:
             payload["prompt"] = prompt
         
-        response = requests.post(url, headers=self._get_headers(), json=payload)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Video extension failed: {e}"
+            
+            # Try to get detailed error from response
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_details = e.response.json()
+                    if 'message' in error_details:
+                        error_msg = f"Video extension failed: {error_details['message']}"
+                    elif 'error' in error_details:
+                        error_msg = f"Video extension failed: {error_details['error']}"
+                    else:
+                        error_msg = f"Video extension failed: {error_details}"
+                except:
+                    # If response is not JSON, use text
+                    error_msg = f"Video extension failed: {e.response.text}"
+                
+                # Add status code and URL for debugging
+                error_msg += f" (Status: {e.response.status_code}, URL: {url})"
+                
+            raise requests.exceptions.RequestException(error_msg) from e
     
     def check_status(self, task_id, operation="creation"):
         """
@@ -217,22 +261,22 @@ class KlingAPI:
             print(f"⏰ Timeout after {max_wait_time} seconds")
         return None
     
-    def download_video(self, url, filename, results_dir="results"):
+    def download_video(self, url, filename, results_dir="videos"):
         """
         Download a video from URL to local storage.
         
         Args:
             url (str): Video URL to download
             filename (str): Local filename to save as
-            results_dir (str): Directory to save videos (default: "results")
+            results_dir (str): Directory to save videos (default: "video")
             
         Returns:
             str: Path to downloaded file, or None if download failed
         """
-        results_path = Path(results_dir)
-        results_path.mkdir(exist_ok=True)
+        video_path = Path(results_dir)
+        video_path.mkdir(exist_ok=True)
         
-        file_path = results_path / filename
+        file_path = video_path / filename
         
         try:
             print(f"📥 Downloading video to {file_path}...")
@@ -249,3 +293,94 @@ class KlingAPI:
         except requests.exceptions.RequestException as e:
             print(f"❌ Error downloading video: {e}")
             return None
+    
+    def check_and_download(self, task_id, operation="creation", download=True, filename_prefix=None, results_dir="videos"):
+        """
+        Check task status and optionally download completed videos.
+        
+        Args:
+            task_id (str): Task ID to check
+            operation (str): Type of operation ("creation" or "extension")
+            download (bool): Whether to download videos if ready (default: True)
+            filename_prefix (str, optional): Prefix for downloaded filenames
+            results_dir (str): Directory to save videos (default: "video")
+            
+        Returns:
+            dict: Status information with keys:
+                - status: current task status
+                - message: status message if any
+                - videos: list of video info if completed
+                - downloaded_files: list of downloaded file paths if download=True
+        """
+        result = {
+            'status': None,
+            'message': None,
+            'videos': [],
+            'downloaded_files': []
+        }
+        
+        status_response = self.check_status(task_id, operation)
+        
+        if not status_response:
+            result['status'] = 'error'
+            result['message'] = 'Failed to check status'
+            return result
+        
+        if status_response.get('code') != 0:
+            result['status'] = 'error'
+            result['message'] = status_response.get('message', 'Unknown API error')
+            return result
+        
+        data = status_response.get('data', {})
+        task_status = data.get('task_status', '')
+        task_status_msg = data.get('task_status_msg', '')
+        
+        result['status'] = task_status
+        result['message'] = task_status_msg
+        
+        print(f"📋 Task {task_id} status: {task_status}")
+        if task_status_msg:
+            print(f"📋 Message: {task_status_msg}")
+        
+        if task_status == 'succeed':
+            task_result = data.get('task_result', {})
+            videos = task_result.get('videos', [])
+            result['videos'] = videos
+            
+            if videos:
+                print(f"\n✅ Found {len(videos)} completed video(s)!")
+                for i, video in enumerate(videos):
+                    print(f"Video {i+1}:")
+                    print(f"  ID: {video.get('id', 'N/A')}")
+                    print(f"  URL: {video.get('url', 'N/A')}")
+                    print(f"  Duration: {video.get('duration', 'N/A')} seconds")
+                
+                if download:
+                    print(f"\n📥 Downloading videos...")
+                    for i, video in enumerate(videos):
+                        video_url = video.get('url')
+                        video_id = video.get('id', f'video_{i+1}')
+                        
+                        if video_url:
+                            # Generate filename
+                            if filename_prefix:
+                                if len(videos) > 1:
+                                    filename = f"{filename_prefix}_{i+1}.mp4"
+                                else:
+                                    filename = f"{filename_prefix}.mp4"
+                            else:
+                                filename = f"{video_id}_.mp4"
+                            
+                            downloaded_path = self.download_video(video_url, filename, results_dir)
+                            if downloaded_path:
+                                result['downloaded_files'].append(downloaded_path)
+            else:
+                print("✅ Task completed but no videos found in response.")
+                
+        elif task_status == 'failed':
+            print(f"❌ Task failed: {task_status_msg}")
+            
+        elif task_status in ['submitted', 'processing']:
+            print(f"⏳ Task is still {task_status}...")
+            
+        return result
